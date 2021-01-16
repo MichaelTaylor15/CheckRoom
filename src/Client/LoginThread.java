@@ -9,10 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 
@@ -97,38 +94,57 @@ public class LoginThread extends Thread {
                         String endcodePassword=rs.getString("PASSWORD");
                         if(MD5.checkpassword(password,endcodePassword)){
                             System.out.println("登陆成功");//登录成功就进入聊天室
-
-
+                            //ChatThreadWindow.total++;//登录成功后人数++
+                            //ChatThreadWindow.f.setTitle("聊天室" + " - " + ChatThreadWindow.name + "     当前在线人数:" + ++ChatThreadWindow.total);
                             //获取本机ip和开设端口：
                             InetAddress address=InetAddress.getLocalHost();//获取本机地址
-                            System.out.println("本机ip地址:"+address);//上面已经连接过数据库了这里直接使用就好了
-                            ServerSocket socket=new ServerSocket(8888);//开设端口
+                            //System.out.println("本机ip地址:"+address);//上面已经连接过数据库了这里直接使用就好了
+                            int port=1688;
+                            DatagramSocket socket = null;
+                            //检测端口是否已经被使用
+                            while(true){
+                                try{
+                                    socket=new DatagramSocket(port);//开设端口,没有发生异常就会break
+                                    break;
+                                }catch (IOException e){//该异常至少发生一次
+                                    port++;
+                                    //e.printStackTrace();
+                                }
+                            }
+
+
+
                             //传入数据库，sql语句更改;
-                            String sql1 = "UPDATE users SET ip=?,port=8888 WHERE username=?";
+                            //登录之后设置status='online';状态,这里status是一个状态，写死的
+                            String sql1 = "UPDATE users SET ip=?,port=?,status=? WHERE username=?";
                             //String sql1 = "UPDATE users SET ip=? , port=8888 WHERE username=?";
                             pstmt=con.prepareStatement(sql1);
+
                             pstmt.setString(1, address.getHostAddress());
-                            pstmt.setString(2, username);
+                            pstmt.setInt(2, port);
+                            pstmt.setString(3,"online");
+                            pstmt.setString(4, username);
                             pstmt.executeQuery();
+
                             //pstmt.setString(3, String.valueOf(socket));
                             loginf.setVisible(false);//ip和端口录入数据库后关闭窗口进入聊天房间
-                            ChatThreadWindow_Example login2=new ChatThreadWindow_Example();
+
+
+                            ChatThreadWindow login2=new ChatThreadWindow(username,socket);//传入用户名并在聊天室标题中显示
                         }
+                    }
                         else
                             System.out.println("登录失败");
                     }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                } catch (NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                catch (IOException ex) {
+                    ex.printStackTrace();
                 }
-
+                catch (NoSuchAlgorithmException ex) {
+                    ex.printStackTrace();
+                }
+                catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
         //登录键、用户名、框和密码框都设置事件

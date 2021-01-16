@@ -9,8 +9,9 @@ public class Client {
     public static void main(String[] args) throws Exception {
         Thread login = new LoginThread();
         login.start();
+        //System.out.println(MD5.encoderByMd5("wjz1234"));
         //ChatThreadWindow_Example login2=new ChatThreadWindow_Example();
-
+        //System.out.println( MD5.encoderByMd5("41564"));
         //System.out.println(MD5.encoderByMd5("lw1234"));
     }
 }
